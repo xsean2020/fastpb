@@ -43,11 +43,9 @@ func main() {
 		// check: only support proto3 now
 		for _, f := range gen.Files {
 			if f.Desc.Syntax() != protoreflect.Proto3 {
-				return nil
+				continue
 			}
-		}
-		// gen code here
-		for _, f := range gen.Files {
+
 			if f.Generate {
 				genfastpb.GenerateFile(gen, f)
 			}

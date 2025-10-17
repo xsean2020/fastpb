@@ -616,12 +616,22 @@ func (s sortFields) Swap(i, j int) {
 	s[j] = tmp
 }
 
+func parseGoPackage(raw string) string {
+	if i := strings.Index(raw, ";"); i >= 0 {
+		return raw[i+1:] // ; 后面是别名
+	}
+	return filepath.Base(raw)
+}
+
 func parseTypeName(desc protoreflect.Descriptor, fdesc *descriptorpb.FileDescriptorProto) string {
 	switch desc.Parent().(type) {
 	case protoreflect.MessageDescriptor:
 		fullname := string(desc.FullName())
 		name := strings.TrimPrefix(fullname, string(desc.ParentFile().Package())+".")
 		name = strings.ReplaceAll(name, ".", "_")
+		if pfo, ok := desc.ParentFile().Options().(*descriptorpb.FileOptions); ok && pfo.GoPackage != nil {
+			return parseGoPackage(*pfo.GoPackage) + "." + name
+		}
 		return name
 	default:
 		// protoreflect.FileDescriptor usually
